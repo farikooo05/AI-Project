@@ -1,5 +1,5 @@
 {
-  "dataset_path": "data/raw/sample_comments.csv",
+  "dataset_path": "data/raw/goemotions_prepared.csv",
   "text_column": "text",
   "label_column": "label",
   "labels": ["joy", "sadness", "anger", "fear", "surprise", "neutral"],

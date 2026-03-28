@@ -4,14 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from emotion_detector.config import load_config
-from emotion_detector.data_loader import load_dataset
+from emotion_detector.data_loader import load_dataset, split_dataset
 from emotion_detector.evaluation import (
     build_metrics_report,
     save_confusion_matrix,
@@ -19,48 +17,6 @@ from emotion_detector.evaluation import (
 )
 from emotion_detector.preprocessing import clean_text
 from emotion_detector.utils.io import save_joblib, save_json
-
-
-def split_dataset(
-    data_frame: pd.DataFrame,
-    text_column: str,
-    label_column: str,
-    test_size: float,
-    validation_size: float,
-    random_state: int,
-) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
-    """Split the dataset into train, validation, and test sets."""
-    if not 0 < test_size < 1:
-        raise ValueError("test_size must be between 0 and 1.")
-    if not 0 <= validation_size < 1:
-        raise ValueError("validation_size must be between 0 and 1.")
-    if test_size + validation_size >= 1:
-        raise ValueError("test_size + validation_size must be less than 1.")
-
-    texts = data_frame[text_column].tolist()
-    labels = data_frame[label_column].tolist()
-    x_temp, x_test, y_temp, y_test = train_test_split(
-        texts,
-        labels,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=labels,
-    )
-
-    if validation_size == 0:
-        return x_temp, [], x_test, y_temp, [], y_test
-
-    remaining_size = 1 - test_size
-    validation_ratio = validation_size / remaining_size
-
-    x_train, x_val, y_train, y_val = train_test_split(
-        x_temp,
-        y_temp,
-        test_size=validation_ratio,
-        random_state=random_state,
-        stratify=y_temp,
-    )
-    return x_train, x_val, x_test, y_train, y_val, y_test
 
 
 def build_baseline_pipeline(
@@ -107,20 +63,7 @@ def run_training(config_path: Path) -> None:
         remove_duplicates=config.remove_duplicates,
     )
 
-    minimum_examples_per_label = 3 if config.validation_size > 0 else 2
-    label_counts = dataset[config.label_column].value_counts()
-    underrepresented_labels = label_counts[label_counts < minimum_examples_per_label]
-    if not underrepresented_labels.empty:
-        raise ValueError(
-            "Each label must have at least "
-            f"{minimum_examples_per_label} examples for the requested split. "
-            "Labels with too few examples: "
-            + ", ".join(
-                f"{label} ({count})" for label, count in underrepresented_labels.items()
-            )
-        )
-
-    x_train, x_val, x_test, y_train, y_val, y_test = split_dataset(
+    train_frame, validation_frame, test_frame = split_dataset(
         data_frame=dataset,
         text_column=config.text_column,
         label_column=config.label_column,
@@ -128,6 +71,12 @@ def run_training(config_path: Path) -> None:
         validation_size=config.validation_size,
         random_state=config.random_state,
     )
+    x_train = train_frame[config.text_column].tolist()
+    y_train = train_frame[config.label_column].tolist()
+    x_val = validation_frame[config.text_column].tolist()
+    y_val = validation_frame[config.label_column].tolist()
+    x_test = test_frame[config.text_column].tolist()
+    y_test = test_frame[config.label_column].tolist()
 
     pipeline = build_baseline_pipeline(
         max_features=config.max_features,

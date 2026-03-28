@@ -13,7 +13,9 @@ class BaselineConfig:
     text_column: str
     label_column: str
     labels: list[str]
+    validation_size: float
     test_size: float
+    remove_duplicates: bool
     random_state: int
     max_features: int
     ngram_range: tuple[int, int]
@@ -35,7 +37,9 @@ def load_config(config_path: Path) -> BaselineConfig:
         text_column=raw_config["text_column"],
         label_column=raw_config["label_column"],
         labels=list(raw_config["labels"]),
+        validation_size=raw_config.get("validation_size", 0.1),
         test_size=raw_config["test_size"],
+        remove_duplicates=raw_config.get("remove_duplicates", False),
         random_state=raw_config["random_state"],
         max_features=raw_config["max_features"],
         ngram_range=tuple(raw_config["ngram_range"]),

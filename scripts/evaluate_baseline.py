@@ -31,6 +31,9 @@ def main() -> None:
     print(f"Macro recall: {metrics['macro_recall']:.4f}")
     print(f"Macro F1-score: {metrics['macro_f1']:.4f}")
     print(f"Weighted F1-score: {metrics['weighted_f1']:.4f}")
+    if "validation" in metrics:
+        validation_metrics = metrics["validation"]
+        print(f"Validation Macro F1-score: {validation_metrics['macro_f1']:.4f}")
     print(f"Detailed report path: {metrics_path}")
 
 

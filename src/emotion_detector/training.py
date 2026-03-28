@@ -1,0 +1,107 @@
+"""Training workflow for the baseline TF-IDF + Logistic Regression model."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+
+from emotion_detector.config import load_config
+from emotion_detector.data_loader import load_dataset
+from emotion_detector.evaluation import (
+    build_metrics_report,
+    save_confusion_matrix,
+    save_metrics,
+)
+from emotion_detector.preprocessing import clean_text
+from emotion_detector.utils.io import save_joblib, save_json
+
+
+def build_baseline_pipeline(
+    max_features: int,
+    ngram_range: tuple[int, int],
+    min_df: int,
+    max_iter: int,
+    random_state: int,
+) -> Pipeline:
+    """Create the baseline sklearn pipeline."""
+    return Pipeline(
+        steps=[
+            (
+                "tfidf",
+                TfidfVectorizer(
+                    preprocessor=clean_text,
+                    max_features=max_features,
+                    ngram_range=ngram_range,
+                    min_df=min_df,
+                ),
+            ),
+            (
+                "classifier",
+                LogisticRegression(
+                    max_iter=max_iter,
+                    solver="lbfgs",
+                    random_state=random_state,
+                ),
+            ),
+        ]
+    )
+
+
+def run_training(config_path: Path) -> None:
+    """Execute the full baseline training pipeline."""
+    config = load_config(config_path)
+    project_root = config_path.parents[1]
+
+    dataset = load_dataset(
+        dataset_path=project_root / config.dataset_path,
+        text_column=config.text_column,
+        label_column=config.label_column,
+        allowed_labels=config.labels,
+    )
+
+    texts = dataset[config.text_column].tolist()
+    labels = dataset[config.label_column].tolist()
+    x_train, x_test, y_train, y_test = train_test_split(
+        texts,
+        labels,
+        test_size=config.test_size,
+        random_state=config.random_state,
+        stratify=labels,
+    )
+
+    pipeline = build_baseline_pipeline(
+        max_features=config.max_features,
+        ngram_range=config.ngram_range,
+        min_df=config.min_df,
+        max_iter=config.max_iter,
+        random_state=config.random_state,
+    )
+    pipeline.fit(x_train, y_train)
+
+    label_names = pipeline.classes_.tolist()
+    predictions = pipeline.predict(x_test)
+    metrics = build_metrics_report(y_test, predictions.tolist(), label_names)
+
+    save_joblib(pipeline, project_root / config.model_output_path)
+    save_json(label_names, project_root / config.labels_output_path)
+    save_metrics(metrics, project_root / config.metrics_output_path)
+    save_confusion_matrix(
+        y_true=y_test,
+        y_pred=predictions.tolist(),
+        labels=label_names,
+        output_path=project_root / config.confusion_matrix_output_path,
+    )
+
+    print("Training completed successfully.")
+    print(f"Dataset size: {len(dataset)} rows")
+    print(f"Train split: {len(x_train)} rows")
+    print(f"Test split: {len(x_test)} rows")
+    print(f"Accuracy: {metrics['accuracy']:.4f}")
+    print(f"Macro F1-score: {metrics['macro_f1']:.4f}")
+    print(f"Model saved to: {project_root / config.model_output_path}")
+    print(f"Metrics saved to: {project_root / config.metrics_output_path}")
+    print(f"Confusion matrix saved to: {project_root / config.confusion_matrix_output_path}")

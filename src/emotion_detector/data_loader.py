@@ -86,6 +86,33 @@ def validate_label_values(
         )
 
 
+def get_class_distribution(
+    data_frame: pd.DataFrame,
+    label_column: str,
+) -> pd.DataFrame:
+    """Return class counts and percentages for a label column."""
+    if label_column not in data_frame.columns:
+        raise ValueError(f"Label column '{label_column}' was not found in the dataset.")
+
+    counts = data_frame[label_column].value_counts().sort_index()
+    distribution = counts.rename_axis(label_column).reset_index(name="count")
+    distribution["percentage"] = (distribution["count"] / len(data_frame) * 100).round(2)
+    return distribution
+
+
+def format_class_distribution(
+    data_frame: pd.DataFrame,
+    label_column: str,
+    title: str,
+) -> str:
+    """Return a readable multi-line string for class distribution logging."""
+    distribution = get_class_distribution(data_frame, label_column=label_column)
+    lines = [title]
+    for row in distribution.itertuples(index=False):
+        lines.append(f"  - {row[0]}: {row[1]} ({row[2]:.2f}%)")
+    return "\n".join(lines)
+
+
 def split_dataset(
     data_frame: pd.DataFrame,
     text_column: str,

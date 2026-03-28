@@ -13,6 +13,7 @@ if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
 from emotion_detector.dataset_preparation import load_label_mapping, prepare_dataset
+from emotion_detector.data_loader import format_class_distribution
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -59,6 +60,7 @@ def main() -> None:
     print("Dataset preparation completed successfully.")
     print(f"Prepared rows: {len(prepared_frame)}")
     print(f"Saved cleaned dataset to: {output_path}")
+    print(format_class_distribution(prepared_frame, label_column="label", title="Prepared dataset class distribution:"))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
 from emotion_detector.config import load_config
-from emotion_detector.data_loader import load_dataset, split_dataset
+from emotion_detector.data_loader import (
+    format_class_distribution,
+    load_dataset,
+    split_dataset,
+)
 from emotion_detector.evaluation import (
     build_metrics_report,
     save_confusion_matrix,
@@ -25,6 +29,7 @@ def build_baseline_pipeline(
     min_df: int,
     max_iter: int,
     random_state: int,
+    use_balanced_class_weight: bool,
 ) -> Pipeline:
     """Create the baseline sklearn pipeline."""
     return Pipeline(
@@ -43,6 +48,7 @@ def build_baseline_pipeline(
                 LogisticRegression(
                     max_iter=max_iter,
                     solver="lbfgs",
+                    class_weight="balanced" if use_balanced_class_weight else None,
                     random_state=random_state,
                 ),
             ),
@@ -84,6 +90,7 @@ def run_training(config_path: Path) -> None:
         min_df=config.min_df,
         max_iter=config.max_iter,
         random_state=config.random_state,
+        use_balanced_class_weight=config.use_balanced_class_weight,
     )
     pipeline.fit(x_train, y_train)
 
@@ -114,9 +121,38 @@ def run_training(config_path: Path) -> None:
 
     print("Training completed successfully.")
     print(f"Dataset size: {len(dataset)} rows")
+    print(
+        format_class_distribution(
+            dataset,
+            label_column=config.label_column,
+            title="Prepared dataset class distribution:",
+        )
+    )
     print(f"Train split: {len(x_train)} rows")
+    print(
+        format_class_distribution(
+            train_frame,
+            label_column=config.label_column,
+            title="Train split class distribution:",
+        )
+    )
     print(f"Validation split: {len(x_val)} rows")
+    if not validation_frame.empty:
+        print(
+            format_class_distribution(
+                validation_frame,
+                label_column=config.label_column,
+                title="Validation split class distribution:",
+            )
+        )
     print(f"Test split: {len(x_test)} rows")
+    print(
+        format_class_distribution(
+            test_frame,
+            label_column=config.label_column,
+            title="Test split class distribution:",
+        )
+    )
     print(f"Accuracy: {metrics['accuracy']:.4f}")
     print(f"Macro F1-score: {metrics['macro_f1']:.4f}")
     if validation_metrics is not None:

@@ -16,6 +16,7 @@ class BaselineConfig:
     validation_size: float
     test_size: float
     remove_duplicates: bool
+    use_balanced_class_weight: bool
     random_state: int
     max_features: int
     ngram_range: tuple[int, int]
@@ -40,6 +41,7 @@ def load_config(config_path: Path) -> BaselineConfig:
         validation_size=raw_config.get("validation_size", 0.1),
         test_size=raw_config["test_size"],
         remove_duplicates=raw_config.get("remove_duplicates", False),
+        use_balanced_class_weight=raw_config.get("use_balanced_class_weight", True),
         random_state=raw_config["random_state"],
         max_features=raw_config["max_features"],
         ngram_range=tuple(raw_config["ngram_range"]),

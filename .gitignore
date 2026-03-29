@@ -9,9 +9,11 @@ __pycache__/
 artifacts/models/*
 artifacts/metrics/*
 artifacts/figures/*
+artifacts/reports/*
 !artifacts/models/.gitkeep
 !artifacts/metrics/.gitkeep
 !artifacts/figures/.gitkeep
+!artifacts/reports/.gitkeep
 
 data/processed/*
 !data/processed/.gitkeep

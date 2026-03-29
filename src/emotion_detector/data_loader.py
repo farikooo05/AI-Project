@@ -60,7 +60,7 @@ def drop_invalid_rows(
     label_column: str,
 ) -> pd.DataFrame:
     """Drop rows with missing or blank text/label values."""
-    cleaned_frame = data_frame[[text_column, label_column]].dropna().copy()
+    cleaned_frame = data_frame.dropna(subset=[text_column, label_column]).copy()
     cleaned_frame[text_column] = cleaned_frame[text_column].astype(str).str.strip()
     cleaned_frame[label_column] = cleaned_frame[label_column].astype(str).str.strip().str.lower()
     cleaned_frame = cleaned_frame[

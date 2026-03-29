@@ -45,6 +45,9 @@ def main() -> None:
     print(f"Full prediction report: {output_paths['full_report']}")
     print(f"Correct example CSV: {output_paths['correct_examples']}")
     print(f"Wrong example CSV: {output_paths['wrong_examples']}")
+    print(f"Misclassified example CSV: {output_paths['misclassified_examples']}")
+    print(f"Confusion matrix CSV: {output_paths['confusion_matrix']}")
+    print(f"Top confusions JSON: {output_paths['top_confusions']}")
 
     correct_examples = pd.read_csv(output_paths["correct_examples"])
     wrong_examples = pd.read_csv(output_paths["wrong_examples"])

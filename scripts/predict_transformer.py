@@ -1,53 +1,56 @@
-"""Run local inference using a transformer model exported from Google Colab."""
+from transformers import pipeline
+import warnings
 
-from __future__ import annotations
+# Hide unnecessary warnings for a clean console
+warnings.filterwarnings('ignore')
 
-import argparse
-from pathlib import Path
-import sys
+def main():
+    model_path = "artifacts/models/transformer_augmented"
+    
+    print("Loading Transformer model... (this will take a few seconds)")
+    try:
+        # top_k=None forces the model to return probabilities for ALL emotions
+        classifier = pipeline("text-classification", model=model_path, tokenizer=model_path, top_k=None)
+    except Exception as e:
+        print(f"Error loading the model: {e}")
+        return
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SRC_PATH = PROJECT_ROOT / "src"
+    print("================================================")
+    print("Emotion Detection Demo")
+    print("Model: DistilBERT (Transformer Augmented)")
+    print("Type a comment and press Enter.")
+    print("Type 'exit', 'quit', or 'q' to close the demo.")
+    print("================================================")
 
-if str(SRC_PATH) not in sys.path:
-    sys.path.insert(0, str(SRC_PATH))
+    while True:
+        text = input("\nComment: ").strip()
+        if text.lower() in ['exit', 'quit', 'q']:
+            break
+        if not text:
+            continue
 
-from emotion_detector.transformer_inference import TransformerPredictor
-
-
-def build_parser() -> argparse.ArgumentParser:
-    """Create the command-line argument parser for transformer inference."""
-    parser = argparse.ArgumentParser(
-        description="Run local inference with a Colab-trained exported transformer model."
-    )
-    parser.add_argument(
-        "--text",
-        required=True,
-        help="Input text to classify.",
-    )
-    parser.add_argument(
-        "--model-dir",
-        default="artifacts/models/transformer",
-        help="Directory containing exported transformer artifacts.",
-    )
-    return parser
-
-
-def main() -> None:
-    """Load the local transformer artifacts and print a prediction."""
-    parser = build_parser()
-    args = parser.parse_args()
-
-    predictor = TransformerPredictor(model_dir=args.model_dir)
-    probabilities = predictor.predict_proba(args.text)
-    prediction = predictor.predict(args.text)
-
-    print("Transformer inference completed successfully.")
-    print(f"Predicted label: {prediction['predicted_label']}")
-    print("Probabilities:")
-    for label, score in sorted(probabilities.items(), key=lambda item: item[1], reverse=True):
-        print(f"  - {label}: {score:.4f}")
-
+        # Get predictions
+        results = classifier(text)[0] 
+        
+        # Sort from highest to lowest score
+        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)
+        
+        top_emotion = sorted_results[0]['label'].upper()
+        
+        print(f"\nPredicted emotion: {top_emotion}")
+        print("Top predictions:")
+        for i, res in enumerate(sorted_results[:3]):
+            prefix = "-> Top 1" if i == 0 else f"   Top {i+1}"
+            print(f"{prefix}: {res['label']} ({res['score']*100:.2f}%)")
+        
+        print("All class probabilities:")
+        probs_str = " | ".join([f"{res['label']}: {res['score']*100:.2f}%" for res in sorted_results])
+        print(probs_str)
+        
+        print("Top contributing words/features:")
+        print("  - Transformers process the entire context of the sentence, not just isolated words.")
+        print("  - Therefore, individual word weights are not applicable here.")
 
 if __name__ == "__main__":
     main()
+

@@ -3,3 +3,7 @@ numpy>=1.26,<3.0
 scikit-learn>=1.5,<2.0
 matplotlib>=3.9,<4.0
 joblib>=1.4,<2.0
+torch>=2.0.0
+transformers>=4.30.0
+streamlit>=1.28.0
+

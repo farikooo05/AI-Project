@@ -1,0 +1,34 @@
+{
+  "accepted_mappings": {
+    "anger": "anger",
+    "annoyance": "anger",
+    "disapproval": "anger",
+    "disgust": "anger",
+    "fear": "fear",
+    "nervousness": "fear",
+    "joy": "joy",
+    "amusement": "joy",
+    "excitement": "joy",
+    "gratitude": "joy",
+    "relief": "joy",
+    "sadness": "sadness",
+    "grief": "sadness",
+    "disappointment": "sadness",
+    "remorse": "sadness",
+    "surprise": "surprise",
+    "neutral": "neutral"
+  },
+  "dropped_labels": [
+    "admiration",
+    "approval",
+    "caring",
+    "confusion",
+    "curiosity",
+    "desire",
+    "embarrassment",
+    "love",
+    "optimism",
+    "pride",
+    "realization"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "dataset_path": "data/processed/emotion_training_merged.csv",
+  "text_column": "text",
+  "label_column": "label",
+  "labels": ["joy", "sadness", "anger", "fear", "surprise", "neutral"],
+  "validation_size": 0.15,
+  "test_size": 0.15,
+  "remove_duplicates": true,
+  "use_balanced_class_weight": true,
+  "random_state": 42,
+  "max_features": 5000,
+  "ngram_range": [1, 2],
+  "min_df": 2,
+  "max_iter": 1000,
+  "model_output_path": "artifacts/models/baseline_pipeline.joblib",
+  "labels_output_path": "artifacts/models/labels.json",
+  "metrics_output_path": "artifacts/metrics/baseline_metrics.json",
+  "confusion_matrix_output_path": "artifacts/figures/confusion_matrix.png"
+}
